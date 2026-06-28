@@ -1,0 +1,399 @@
+
+{
+  "name": "stock analyser summary",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 16
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -752,
+        16
+      ],
+      "id": "13850dbe-1c6b-419d-8ace-16c8f2be46e7",
+      "name": "daily 4pm"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1HuidhttQlso9Wq0wW55Ni3Km13izB3oXipbDy5TslOU",
+          "mode": "list",
+          "cachedResultName": "StockTrader",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HuidhttQlso9Wq0wW55Ni3Km13izB3oXipbDy5TslOU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 598199791,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HuidhttQlso9Wq0wW55Ni3Km13izB3oXipbDy5TslOU/edit#gid=598199791"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -544,
+        16
+      ],
+      "id": "2724cb09-26fc-4e34-bdbd-1385772ae8f3",
+      "name": "Get row(s) in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "i3N9L0rhFMPL4jlq",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(item => item.json);\n\nconst latestBySymbol = {};\n\nfor (const row of rows) {\n  if (!row.Symbol) continue;\n  latestBySymbol[row.Symbol] = row;\n}\n\nconst cleanRows = Object.values(latestBySymbol).map(row => ({\n  Symbol: row.Symbol,\n  Company: row.Company,\n  CurrentPrice: Number(row.CurrentPrice || row.Price || 0),\n  ChangePercent: Number(row.ChangePercent || 0),\n  Signal: row.Signal || row.signal || \"WATCH\",\n  Volume: Number(row.Volume || 0),\n}));\n\nconst chartObject = {\n  type: \"bar\",\n  data: {\n    labels: cleanRows.map(r => r.Symbol),\n    datasets: [{\n      label: \"Daily Change %\",\n      data: cleanRows.map(r => r.ChangePercent)\n    }]\n  }\n};\n\nreturn {\n  json: {\n    rows: cleanRows,\n    symbols: cleanRows.map(r => r.Symbol).join(\", \"),\n    totalStocks: cleanRows.length,\n    chart: JSON.stringify(chartObject)\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -368,
+        32
+      ],
+      "id": "5616a1c2-b5b3-44f0-938f-1f60f3c00616",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://quickchart.io/chart",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"width\": 900,\n  \"height\": 450,\n  \"format\": \"png\",\n  \"chart\": {{$json.chart}}\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "chartImage"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -128,
+        -64
+      ],
+      "id": "b4e7c71a-e2fd-4271-a151-4f49140a5bd0",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        80,
+        16
+      ],
+      "id": "b57361a6-3bdb-42b6-9f41-e14a42ecf5fb",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "sendTo": "sanyasrivastava1@gmail.com",
+        "subject": "={{$json.subject}}",
+        "message": "={{$json.html}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2048,
+        16
+      ],
+      "id": "726b6ca4-5d15-46c0-9bbf-049bba4e88fa",
+      "name": "Send a message",
+      "webhookId": "40f5c781-1457-4074-8e42-89edaaecc2e6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gi75UNDIjAdVGtOj",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://query1.finance.yahoo.com/v8/finance/chart/%5ENSEI",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        640,
+        384
+      ],
+      "id": "a29b4b09-2ad2-4e34-8138-70cf38b5dfd5",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const meta = $json.chart.result[0].meta;\n\nconst current = Number(meta.regularMarketPrice);\nconst previous = Number(meta.previousClose);\n\nconst change = current - previous;\nconst changePercent = ((change / previous) * 100).toFixed(2);\n\nlet sentiment = \"Neutral\";\n\nif (changePercent > 0.5) {\n  sentiment = \"Bullish\";\n} else if (changePercent < -0.5) {\n  sentiment = \"Bearish\";\n}\n\nreturn {\n  json: {\n    index: \"NIFTY 50\",\n    currentPrice: current,\n    previousClose: previous,\n    change: Number(change.toFixed(2)),\n    changePercent: Number(changePercent),\n    sentiment\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        432
+      ],
+      "id": "263b83d1-747a-4715-9f7a-ec27af08cba7",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1440,
+        0
+      ],
+      "id": "27cc67ce-5bac-449b-9a83-3ded114737b1",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a professional Indian stock market strategist.\n\nToday's market data:\n\n{{ JSON.stringify($json, null, 2) }}\n\nCreate a concise overall market summary.\n\nInclude:\n1. Overall market sentiment\n2. NIFTY 50 movement\n3. What this means for tomorrow\n4. Key risk to monitor\n\nRules:\n- Use only the data provided\n- Do not invent news\n- Do not give buy/sell advice\n- Keep it under 150 words"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        1136,
+        304
+      ],
+      "id": "44bcf0ab-792a-4b86-b8e0-cd7e1d0cf574",
+      "name": "Market AI",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "KXH2QSwJInt5QArq",
+          "name": "Google Gemini(PaLM) Api account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a senior equity research analyst.\n\nAnalyze ONLY these tracked companies:\n\n{{ JSON.stringify($json.rows, null, 2) }}\n\nWrite a clean plain-text report.\n\nSections:\nExecutive Summary\nPortfolio Health\nBest Performer\nWeakest Performer\nCompany-wise Observations\nRisk Alerts\nTomorrow Watchlist\n\nRules:\n- Do not return JSON\n- Do not use code blocks\n- Do not mention companies outside this list\n- Do not invent news\n- Keep it under 300 words"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        304,
+        304
+      ],
+      "id": "58d60f66-febd-47da-a601-9de6f524aae6",
+      "name": "Portfolio AI",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "KXH2QSwJInt5QArq",
+          "name": "Google Gemini(PaLM) Api account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $(\"Code in JavaScript\").first().json.rows || [];\n\nconst totalStocks = rows.length;\n\nconst avgChange = totalStocks\n  ? (\n      rows.reduce((sum, r) => sum + Number(r.ChangePercent || 0), 0) /\n      totalStocks\n    ).toFixed(2)\n  : \"0.00\";\n\nconst best = [...rows].sort(\n  (a, b) => Number(b.ChangePercent || 0) - Number(a.ChangePercent || 0)\n)[0];\n\nconst worst = [...rows].sort(\n  (a, b) => Number(a.ChangePercent || 0) - Number(b.ChangePercent || 0)\n)[0];\n\nconst portfolioText =\n  $(\"Portfolio AI\").first().json.content?.parts?.[0]?.text ||\n  \"Portfolio analysis unavailable.\";\n\nconst marketText =\n  $(\"Market AI\").first().json.content?.parts?.[0]?.text ||\n  \"Market summary unavailable.\";\n\nconst chartUrl = $(\"Code in JavaScript\").first().json.chartUrl || \"\";\n\nconst tableRows = rows\n  .map((r) => {\n    const change = Number(r.ChangePercent || 0);\n    const changeColor =\n      change > 0 ? \"#16a34a\" : change < 0 ? \"#dc2626\" : \"#6b7280\";\n\n    return `\n      <tr>\n        <td>${r.Company || r.Symbol}</td>\n        <td><b>${r.Symbol}</b></td>\n        <td>₹${Number(r.CurrentPrice || 0).toFixed(2)}</td>\n        <td style=\"color:${changeColor};font-weight:bold;\">${change.toFixed(\n      2\n    )}%</td>\n        <td>${r.Signal || \"WATCH\"}</td>\n      </tr>\n    `;\n  })\n  .join(\"\");\n\nconst html = `\n<html>\n<body style=\"margin:0;padding:0;background:#f3f4f6;font-family:Arial,sans-serif;color:#111827;\">\n\n<div style=\"max-width:980px;margin:30px auto;background:#ffffff;border-radius:18px;padding:32px;\">\n\n  <h1 style=\"text-align:center;font-size:34px;margin-bottom:30px;\">\n    📊 Daily Stock Intelligence Report\n  </h1>\n\n  <div style=\"display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:35px;\">\n    <div style=\"background:#f8fafc;border-radius:14px;padding:20px;text-align:center;\">\n      <h2 style=\"margin:0;font-size:28px;\">${totalStocks}</h2>\n      <p style=\"margin:8px 0 0;color:#555;\">Tracked Companies</p>\n    </div>\n\n    <div style=\"background:#f8fafc;border-radius:14px;padding:20px;text-align:center;\">\n      <h2 style=\"margin:0;font-size:28px;\">${avgChange}%</h2>\n      <p style=\"margin:8px 0 0;color:#555;\">Average Change</p>\n    </div>\n\n    <div style=\"background:#ecfdf5;border-radius:14px;padding:20px;text-align:center;\">\n      <h2 style=\"margin:0;font-size:22px;color:#16a34a;\">${\n        best?.Symbol || \"-\"\n      }</h2>\n      <p style=\"margin:8px 0 0;color:#555;\">Best Performer</p>\n    </div>\n\n    <div style=\"background:#fef2f2;border-radius:14px;padding:20px;text-align:center;\">\n      <h2 style=\"margin:0;font-size:22px;color:#dc2626;\">${\n        worst?.Symbol || \"-\"\n      }</h2>\n      <p style=\"margin:8px 0 0;color:#555;\">Weakest Performer</p>\n    </div>\n  </div>\n\n  ${\n    chartUrl\n      ? `\n  <h2>📈 Daily Change Chart</h2>\n  <div style=\"background:#f9fafb;border-radius:14px;padding:18px;margin-bottom:30px;text-align:center;\">\n    <img src=\"${chartUrl}\" style=\"max-width:100%;border-radius:10px;\" />\n  </div>\n  `\n      : \"\"\n  }\n\n  <h2>🤖 Portfolio Analysis</h2>\n  <div style=\"background:#f9fafb;border-radius:14px;padding:20px;line-height:1.7;margin-bottom:30px;\">\n    ${portfolioText.replace(/\\n/g, \"<br>\")}\n  </div>\n\n  <h2>🌍 Overall Market Summary</h2>\n  <div style=\"background:#f9fafb;border-radius:14px;padding:20px;line-height:1.7;margin-bottom:30px;\">\n    ${marketText.replace(/\\n/g, \"<br>\")}\n  </div>\n\n  <h2>📋 Company Performance</h2>\n  <table style=\"width:100%;border-collapse:collapse;margin-top:12px;\">\n    <tr style=\"background:#2563eb;color:white;\">\n      <th style=\"padding:12px;text-align:left;\">Company</th>\n      <th style=\"padding:12px;text-align:left;\">Symbol</th>\n      <th style=\"padding:12px;text-align:left;\">Price</th>\n      <th style=\"padding:12px;text-align:left;\">Change %</th>\n      <th style=\"padding:12px;text-align:left;\">Signal</th>\n    </tr>\n    ${tableRows}\n  </table>\n\n  <p style=\"text-align:center;color:#6b7280;font-size:13px;margin-top:35px;\">\n    Generated automatically using n8n • Yahoo Finance • Gemini AI\n  </p>\n\n</div>\n</body>\n</html>\n`;\n\nreturn {\n  json: {\n    subject: `📊 Daily Stock Intelligence Report - ${new Date().toLocaleDateString(\n      \"en-IN\"\n    )}`,\n    html,\n  },\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1648,
+        0
+      ],
+      "id": "d3b5cd3d-bef4-4ec0-9691-5be56adf7c4c",
+      "name": "Build HTML report"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "daily 4pm": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Portfolio AI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Market AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Build HTML report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Market AI": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Portfolio AI": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build HTML report": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "370cd08e-1053-46a1-a5b5-98fd7d333301",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6e4d4a70212d7b7ab6369367bab99633fb9645e9d4070edee05a48c34370ae23"
+  },
+  "nodeGroups": [],
+  "id": "CRk6ugfUEcIokQCq",
+  "tags": []
+}
