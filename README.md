@@ -1,88 +1,63 @@
-# 📊 Stock Analyser AI
+# 📈 Stock Analyser AI
 
-> An end-to-end AI-powered stock portfolio monitoring and reporting system built using **n8n**, **Gemini AI**, **Google Sheets**, **Yahoo Finance**, **QuickChart**, and **Gmail**.
+> An AI-powered stock portfolio monitoring system built with **n8n**, **Google Sheets**, **Yahoo Finance**, **Gemini AI**, **QuickChart**, and **Gmail**.
 
-![n8n](https://img.shields.io/badge/n8n-Automation-orange)
-![Gemini](https://img.shields.io/badge/Gemini-AI-blue)
-![Google Sheets](https://img.shields.io/badge/Google-Sheets-green)
-![Yahoo Finance](https://img.shields.io/badge/Yahoo-Finance-purple)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+Automatically tracks stocks from a watchlist, maintains historical market data, generates AI-powered portfolio insights, summarizes market conditions, and emails a professional dashboard every day.
 
 ---
 
-# 🚀 Overview
+## ✨ Features
 
-Stock Analyser AI is a fully automated portfolio intelligence system that tracks stocks from a Google Sheets watchlist, fetches live market prices, maintains historical data, generates AI-powered portfolio insights, summarizes overall market conditions, and delivers a professional HTML dashboard directly to your inbox every day.
+### 📊 Watchlist Management
+- Track unlimited stocks using Google Sheets
+- Easy addition/removal of companies
+- Automatic portfolio updates
 
----
+### 📈 Live Price Monitoring
+- Fetches live prices from Yahoo Finance
+- Calculates daily price changes
+- Updates portfolio automatically
+- Maintains historical price logs
 
-# ✨ Features
-
-## 📈 Portfolio Monitoring
-
-- Track unlimited stocks
-- Google Sheets watchlist
-- Automatic price updates
-- Historical price logging
-
----
-
-## 🤖 AI Portfolio Analysis
-
-- Executive summary
-- Portfolio health score
-- Best performer
-- Weakest performer
+### 🤖 AI Portfolio Analysis
+- Executive portfolio summary
+- Portfolio health analysis
+- Best & worst performers
 - Company-wise insights
 - Risk alerts
 - Tomorrow's watchlist
 
----
-
-## 🌍 Market Intelligence
-
+### 🌍 Market Intelligence
 - Overall market sentiment
 - NIFTY 50 analysis
 - Market outlook
-- Risk assessment
+- AI-generated market summary
 
----
-
-## 📊 Interactive Dashboard
-
-- KPI cards
-- Portfolio performance table
-- Dynamic QuickChart graphs
-- HTML email report
-
----
-
-## ⚙️ Automation
-
-- Daily scheduled execution
-- Fully automated workflow
-- Gmail delivery
-- Zero manual intervention
+### 📧 Automated Reporting
+- Professional HTML dashboard
+- Portfolio KPI cards
+- Performance charts
+- Company performance table
+- AI insights delivered via Gmail
 
 ---
 
 # 🛠 Tech Stack
 
-| Component | Technology |
+| Category | Technology |
 |-----------|------------|
-| Workflow Automation | n8n |
+| Automation | n8n |
 | AI | Google Gemini |
-| Stock Data | Yahoo Finance |
+| Market Data | Yahoo Finance |
 | Database | Google Sheets |
 | Charts | QuickChart |
 | Email | Gmail |
-| Scheduling | n8n Schedule Trigger |
 
 ---
 
 # 📂 Repository Structure
 
-```
+```text
 Stock-Analyser/
 │
 ├── README.md
@@ -91,7 +66,8 @@ Stock-Analyser/
 ├── .env.example
 │
 ├── workflow/
-│     └── stock-analyser-workflow.json
+│   ├── sheet-updater-workflow.json
+│   └── daily-report-workflow.json
 │
 ├── screenshots/
 │
@@ -100,43 +76,82 @@ Stock-Analyser/
 
 ---
 
-# 🔄 Workflow
+# 🔄 Workflow Architecture
 
-```
-Google Sheets
-        │
-        ▼
+## Workflow 1 — Live Portfolio Updater
+
+Runs on a schedule and continuously updates the portfolio.
+
+```text
 Schedule Trigger
-        │
-        ▼
-Read Watchlist
-        │
-        ▼
+      │
+      ▼
+Read Watchlist (Google Sheets)
+      │
+      ▼
 Yahoo Finance API
-        │
-        ▼
-Update Portfolio
-        │
-        ▼
-Store History
-        │
-        ▼
-Generate Dashboard
-        │
- ┌──────┴─────────┐
- ▼                ▼
-Portfolio AI   Market AI
-        │
-        ▼
-Generate HTML Report
-        │
-        ▼
-Send Gmail Report
+      │
+      ▼
+Calculate Price Change
+      │
+      ▼
+Update Watchlist
+      │
+      ▼
+Append Historical Data
 ```
+
+### Responsibilities
+
+- Read tracked companies
+- Fetch latest prices
+- Calculate change %
+- Update watchlist
+- Store historical records
 
 ---
 
-# ⚡ Setup
+## Workflow 2 — Daily AI Report
+
+Runs once every day and generates a complete portfolio report.
+
+```text
+Schedule Trigger
+      │
+      ▼
+Read History Sheet
+      │
+      ▼
+Generate Portfolio Metrics
+      │
+      ▼
+Generate Charts
+      │
+      ▼
+Portfolio AI Analysis
+      │
+      ▼
+Market AI Summary
+      │
+      ▼
+Generate HTML Dashboard
+      │
+      ▼
+Send Gmail Report
+```
+
+### Responsibilities
+
+- Read portfolio history
+- Build dashboard metrics
+- Generate charts
+- Create AI portfolio analysis
+- Generate market summary
+- Email daily report
+
+---
+
+# 🚀 Setup
 
 ## 1. Clone Repository
 
@@ -146,19 +161,20 @@ git clone https://github.com/YOUR_USERNAME/Stock-Analyser.git
 
 ---
 
-## 2. Import Workflow
+## 2. Import Workflows
 
-Import
+Import both workflows into n8n:
 
 ```
-workflow/stock-analyser-workflow.json
+workflow/sheet-updater-workflow.json
+workflow/daily-report-workflow.json
 ```
-
-into n8n.
 
 ---
 
 ## 3. Configure Credentials
+
+Connect:
 
 - Google Sheets
 - Gmail
@@ -176,49 +192,51 @@ Replace:
 
 ---
 
-## 5. Activate Workflow
+## 5. Activate Workflows
 
-Enable the schedule trigger.
+Activate:
+
+- ✅ Sheet Updater Workflow
+- ✅ Daily Report Workflow
 
 ---
 
-# 📧 Sample Report
+# 📧 Generated Report
 
-The generated report includes:
+Each report includes:
 
-- Portfolio dashboard
-- AI portfolio summary
-- Overall market summary
-- Company performance table
-- Daily charts
-- Tomorrow's watchlist
+- 📊 Portfolio dashboard
+- 📈 Daily performance chart
+- 🤖 AI portfolio analysis
+- 🌍 Overall market summary
+- 📋 Company performance table
+- 🎯 Tomorrow's watchlist
 
 ---
 
 # 🔮 Future Improvements
 
 - Multiple market indices
-- Sector performance
-- Market news integration
-- Candlestick charts
+- Sector performance analysis
+- Financial news integration
+- Telegram & Slack notifications
 - Technical indicators
-- Telegram/Slack notifications
-- Web dashboard
-- Mobile application
+- React dashboard
+- Portfolio performance trends
 
 ---
 
 # 🤝 Contributing
 
-Contributions, suggestions, and feature requests are welcome.
+Contributions, feature requests, and suggestions are welcome.
 
-Feel free to fork the repository and open a Pull Request.
+Fork the repository and submit a Pull Request.
 
 ---
 
 # 📄 License
 
-Licensed under the MIT License.
+This project is licensed under the MIT License.
 
 ---
 
@@ -226,4 +244,4 @@ Licensed under the MIT License.
 
 **Sanya Srivastava**
 
-If you found this project useful, consider ⭐ starring the repository.
+If you found this project useful, consider giving it a ⭐ on GitHub!
