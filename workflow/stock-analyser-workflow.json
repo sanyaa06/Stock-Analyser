@@ -1,0 +1,518 @@
+{
+  "name": "stock analyser 1",
+  "nodes": [
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1HuidhttQlso9Wq0wW55Ni3Km13izB3oXipbDy5TslOU",
+          "mode": "list",
+          "cachedResultName": "StockTrader",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HuidhttQlso9Wq0wW55Ni3Km13izB3oXipbDy5TslOU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HuidhttQlso9Wq0wW55Ni3Km13izB3oXipbDy5TslOU/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1712,
+        240
+      ],
+      "id": "ddea4285-6ea8-4a4c-b33d-53fdc9ea5af4",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "i3N9L0rhFMPL4jlq",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const yahooResult = $json.chart.result[0];\nconst meta = yahooResult.meta;\n\n// exact name of your loop node\nconst sheetRow = $(\"Loop Over Items1\").item.json;\n\nconst currentPrice = Number(meta.regularMarketPrice);\nconst lastPrice = Number(sheetRow.CurrentPrice || 0);\n\nlet changePercent = 0;\n\nif (lastPrice > 0) {\n  changePercent = ((currentPrice - lastPrice) / lastPrice) * 100;\n}\n\nreturn {\n  json: {\n    Symbol: sheetRow.Symbol || meta.symbol,\n    Company: sheetRow.Company || meta.longName,\n\n    CurrentPrice: currentPrice,\n    LastPrice: lastPrice,\n    ChangePercent: Number(changePercent.toFixed(2)),\n\n    PreviousClose: meta.previousClose,\n    DayHigh: meta.regularMarketDayHigh,\n    DayLow: meta.regularMarketDayLow,\n    Volume: meta.regularMarketVolume,\n    FiftyTwoWeekHigh: meta.fiftyTwoWeekHigh,\n    FiftyTwoWeekLow: meta.fiftyTwoWeekLow,\n\n    alert: Math.abs(changePercent) >= 0.01,\n    signal:\n      changePercent >= 0.01\n        ? \"UP\"\n        : changePercent <= -0.01\n        ? \"DOWN\"\n        : \"WATCH\",\n\n    lastChecked: new Date().toLocaleString(\"en-IN\", {\n      timeZone: \"Asia/Kolkata\",\n    }),\n  },\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2448,
+        256
+      ],
+      "id": "c8e8bb0e-4e7a-4e40-ab0e-bc0b4c16c577",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1HuidhttQlso9Wq0wW55Ni3Km13izB3oXipbDy5TslOU",
+          "mode": "list",
+          "cachedResultName": "StockTrader",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HuidhttQlso9Wq0wW55Ni3Km13izB3oXipbDy5TslOU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HuidhttQlso9Wq0wW55Ni3Km13izB3oXipbDy5TslOU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Symbol": "={{$json.Symbol}}",
+            "ChangePercent": "={{$json.ChangePercent}}",
+            "LastPrice": "={{$json.LastPrice}}",
+            "CurrentPrice": "={{$json.CurrentPrice}}",
+            "Company": "={{$json.Company}}",
+            "row_number": 0,
+            "Alert": "={{$json.alert}}",
+            "Signal": "={{$json.signal}}",
+            "LastChecked": "={{$json.lastChecked}}",
+            "PreviousClose": "={{$json.PreviousClose}}",
+            "DayHigh": "={{$json.DayHigh}}"
+          },
+          "matchingColumns": [
+            "Symbol"
+          ],
+          "schema": [
+            {
+              "id": "Symbol",
+              "displayName": "Symbol",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "CurrentPrice",
+              "displayName": "CurrentPrice",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LastPrice",
+              "displayName": "LastPrice",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ChangePercent",
+              "displayName": "ChangePercent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Alert",
+              "displayName": "Alert",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Signal",
+              "displayName": "Signal",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "LastChecked",
+              "displayName": "LastChecked",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "PreviousClose",
+              "displayName": "PreviousClose",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "DayHigh",
+              "displayName": "DayHigh",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "DayLow",
+              "displayName": "DayLow",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Volume",
+              "displayName": "Volume",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "FiftyTwoWeekHigh",
+              "displayName": "FiftyTwoWeekHigh",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "FiftyTwoWeekLow",
+              "displayName": "FiftyTwoWeekLow",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2736,
+        256
+      ],
+      "id": "df54b856-61f6-4118-b36a-a03bb5be071a",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "i3N9L0rhFMPL4jlq",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://query1.finance.yahoo.com/v8/finance/chart/{{$json.Symbol}}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "interval",
+              "value": "1m"
+            },
+            {
+              "name": "range",
+              "value": "1d"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2224,
+        256
+      ],
+      "id": "08a6b2a7-6271-43b1-8739-32aac0e9e5e4",
+      "name": "Get Live Price1"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        1552,
+        240
+      ],
+      "id": "a4b0ad88-f99e-405b-9712-02c0984567e8",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1HuidhttQlso9Wq0wW55Ni3Km13izB3oXipbDy5TslOU",
+          "mode": "list",
+          "cachedResultName": "StockTrader",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HuidhttQlso9Wq0wW55Ni3Km13izB3oXipbDy5TslOU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 598199791,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HuidhttQlso9Wq0wW55Ni3Km13izB3oXipbDy5TslOU/edit#gid=598199791"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{$json.LastChecked}}",
+            "Symbol": "={{$json.Symbol}}",
+            "Company": "={{$json.Company}}",
+            "Price": "={{$json.CurrentPrice}}",
+            "ChangePercent": "={{$json.ChangePercent}}",
+            "Volume": "={{$json.Volume}}",
+            "Signal": "={{$json.signal}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Symbol",
+              "displayName": "Symbol",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Price",
+              "displayName": "Price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ChangePercent",
+              "displayName": "ChangePercent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Volume",
+              "displayName": "Volume",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Signal",
+              "displayName": "Signal",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3040,
+        256
+      ],
+      "id": "5761c7b7-eafa-42e9-a909-2e1f7a1d10ce",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "i3N9L0rhFMPL4jlq",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1968,
+        256
+      ],
+      "id": "0457ff03-d455-444e-983a-e52b9c348ce7",
+      "name": "Loop Over Items1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Live Price1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Get Live Price1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "c782086b-10be-41ec-a59b-53907affd5f4",
+  "meta": {
+    "instanceId": "6e4d4a70212d7b7ab6369367bab99633fb9645e9d4070edee05a48c34370ae23"
+  },
+  "nodeGroups": [],
+  "id": "DQ0NTwyJtSSzdyzG",
+  "tags": []
+}
